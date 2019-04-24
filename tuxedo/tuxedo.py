@@ -889,8 +889,8 @@ def Strategy_Ones(self, packet: GameTickPacket):
 		elif closest_car_dist < 2000:
 			Dribble(self, packet, Make_Vect(opponent_goal.location))
 		else:
-			Hit_Ball_To(self, packet, Make_Vect(opponent_goal.location), Make_Vect(my_goal.location))
-			# Get_Ball_On_Car(self, packet, Make_Vect(my_goal.direction))
+			# Hit_Ball_To(self, packet, Make_Vect(opponent_goal.location), Make_Vect(my_goal.location))
+			Get_Ball_On_Car(self, packet, Make_Vect(my_goal.direction))
 	
 
 class Tuxedo(BaseAgent):
