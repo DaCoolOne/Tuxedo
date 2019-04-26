@@ -16,7 +16,7 @@ class Vec3:
 	
 	def __add__(self, val):
 		return Vec3(self.x + val.x, self.y + val.y, self.z + val.z)
-
+	
 	def __sub__(self, val):
 		return Vec3(self.x - val.x, self.y - val.y, self.z - val.z)
 	
@@ -553,7 +553,7 @@ def Get_Ball_On_Car(self, packet: GameTickPacket, direction: Vec3):
 			if dot_2D(direction, n) < 0.0:
 				n = n * -1
 			b_p = Vector2(ball_predict.location.x, ball_predict.location.y)
-			Drive_To(self, packet, b_p + n)
+			Drive_To(self, packet, b_p + n, True)
 		
 		# if car_to_real_pos.len() < 150.0:
 			# v = (Make_Vect(my_car.physics.velocity) - Make_Vect(ball_predict.velocity)) * 0.05
@@ -624,7 +624,7 @@ def Attack_Ball(self, packet: GameTickPacket, aim_pos: Vec3, ball_predict: Vec3)
 	
 	car_to_ball_real = Make_Vect(packet.game_ball.physics.location) - Make_Vect(car.physics.location)
 	
-	if car_to_ball_real.len() < 300:
+	if car_to_ball_real.flatten().len() < 300 and car_to_ball_real.z < 250:
 		car_direction = get_car_facing_vector(car)
 		c_p = Make_Vect(packet.game_ball.physics.location) + Make_Vect(packet.game_ball.physics.velocity) * 0.15 - Make_Vect(car.physics.location) - Make_Vect(car.physics.velocity) * 0.15
 		ang = car_direction.correction_to(c_p)
@@ -650,12 +650,10 @@ def Attack_Aim_Ball(self, packet: GameTickPacket, aim_pos: Vec3, ball_predict: V
 		Enter_Flip(self, packet, Vector2(-math.sin(ang) * 2.0, math.cos(ang)).normal())
 	elif car_to_ball_real.len() < 500:
 		Drive_To(self, packet, Make_Vect(packet.game_ball.physics.location) - aim, True)
-	elif car_to_ball_real.len() > 1000:
-		Drive_To(self, packet, Make_Vect(packet.game_ball.physics.location) - aim, True)
 	else:
 		Drive_To(self, packet, ball_predict - aim, True)
 	
-	self.renderer.draw_line_3d(car.physics.location, (ball_predict - aim).UI_Vec3(), self.renderer.yellow())
+	self.renderer.draw_line_3d(packet.game_ball.physics.location, (ball_predict - aim).UI_Vec3(), self.renderer.yellow())
 	
 
 def Hit_Ball_To(self, packet: GameTickPacket, aim_pos: Vec3, fallback: Vec3):
@@ -810,6 +808,7 @@ def Hit_Ball_To(self, packet: GameTickPacket, aim_pos: Vec3, fallback: Vec3):
 			refine = 0
 			
 			car_to_ball = Make_Vect(prediction.slices[0].physics.location) - car_pos
+			ball_location = Vec3()
 			
 			# Calculate impluse vector
 			
@@ -823,49 +822,48 @@ def Hit_Ball_To(self, packet: GameTickPacket, aim_pos: Vec3, fallback: Vec3):
 				
 				refine = refine + 1
 			
-			# if ball_location.z < 150:
-				# Attack_Ball(self, packet, aim_pos, ball_location)
-			# else:
-			ball_z = ball_location.z - 100
-			ball_location = Vector2(ball_location.x, ball_location.y)
-			car_location = Vector2(car_pos.x, car_pos.y)
-			car_direction = get_car_facing_vector(car)
-			car_to_target = ball_location - car_location
-			steer_correction_radians = car_direction.correction_to(car_to_target) * 3.0
-			
-			car_to_ball_2D = ball_location - car_location
-			car_to_ball_plus_vel = car_to_ball_2D - Vector2(car_vel.x, car_vel.y) * 2
-			car_to_ball_plus_vel_2 = car_to_ball_2D - Vector2(car_vel.x, car_vel.y) * 3
-			
-			take_off_angle = math.atan2(car_to_ball.z, car_to_ball_plus_vel_2.len())
-			
-			# if take_off_angle > math.pi * 0.2:
-				# Collect_Boost(self, packet, fallback, True, False)
-			# else:
-			# Drive_To(self, packet, ball_location, False)
-			self.controller_state.throttle = min(1, max(-1, -(take_off_angle - target_take_off_angle) * 2))
-			
-			self.controller_state.handbrake = abs(steer_correction_radians) > math.pi * 0.8 and car_vel.len() > 400
-			self.controller_state.steer = -max(-1.0, min(1.0, steer_correction_radians))
-			self.controller_state.boost = take_off_angle > target_take_off_angle and abs(steer_correction_radians) < math.pi * 0.3
-			
-			if self.controller_state.throttle < 0.0:
-				self.controller_state.steer = -self.controller_state.steer
-			
-			if abs(steer_correction_radians) < 0.1:
-				self.line_up_time += self.delta
+			if ball_location.z < 150:
+				Attack_Ball(self, packet, aim_pos, ball_location)
 			else:
-				self.line_up_time = 0
-			
-			if self.line_up_time > 0.2 and abs(take_off_angle - target_take_off_angle) < 0.2 and time_to_reach_ball * 40 < car.boost and car_to_ball.z < 1500:
-				self.controller_state.jump = True
-				self.controller_state.pitch = 1
-				self.is_arieal = True
-			
-			self.renderer.draw_string_3d(car.physics.location, 2, 2, str(take_off_angle - target_take_off_angle), self.renderer.green())
+				ball_location = Vector2(ball_location.x, ball_location.y)
+				car_location = Vector2(car_pos.x, car_pos.y)
+				car_direction = get_car_facing_vector(car)
+				car_to_target = ball_location - car_location
+				steer_correction_radians = car_direction.correction_to(car_to_target) * 3.0
+				
+				car_to_ball_2D = ball_location - car_location
+				car_to_ball_plus_vel = car_to_ball_2D - Vector2(car_vel.x, car_vel.y) * 2
+				car_to_ball_plus_vel_2 = car_to_ball_2D - Vector2(car_vel.x, car_vel.y) * 3
+				
+				take_off_angle = math.atan2(car_to_ball.z, car_to_ball_plus_vel_2.len())
+				
+				# if take_off_angle > math.pi * 0.2:
+					# Collect_Boost(self, packet, fallback, True, False)
+				# else:
+				# Drive_To(self, packet, ball_location, False)
+				self.controller_state.throttle = min(1, max(-1, -(take_off_angle - target_take_off_angle) * 2))
+				
+				self.controller_state.handbrake = abs(steer_correction_radians) > math.pi * 0.8 and car_vel.len() > 400
+				self.controller_state.steer = -max(-1.0, min(1.0, steer_correction_radians))
+				self.controller_state.boost = take_off_angle > target_take_off_angle and abs(steer_correction_radians) < math.pi * 0.3
+				
+				if self.controller_state.throttle < 0.0:
+					self.controller_state.steer = -self.controller_state.steer
+				
+				if abs(steer_correction_radians) < 0.1:
+					self.line_up_time += self.delta
+				else:
+					self.line_up_time = 0
+				
+				if self.line_up_time > 0.2 and abs(take_off_angle - target_take_off_angle) < 0.2 and time_to_reach_ball * 40 < car.boost and car_to_ball.z < 1500:
+					self.controller_state.jump = True
+					self.controller_state.pitch = 1
+					self.is_arieal = True
+				
+				self.renderer.draw_string_3d(car.physics.location, 2, 2, str(take_off_angle - target_take_off_angle), self.renderer.green())
 			
 		else:
-			Drive_To(self, packet, aim_pos)
+			Drive_To(self, packet, fallback, True)
 		# if abs(steer_correction_radians) > math.pi * 0.8 and car_to_ball.len() > 1000.0:
 			# Enter_Half_Flip(self, packet)
 		
@@ -992,11 +990,13 @@ def Strategy_Ones(self, packet: GameTickPacket):
 		else:
 			v = Make_Vect(my_goal.location) + (Make_Vect(ball_pos.location) - Make_Vect(my_goal.location)).flatten() * 0.8
 			Collect_Boost(self, packet, v, True, False)
+		self.is_arieal = False
+		self.jump_timer = 0.0
 	# Defense
 	elif (((closest_car_pos - Make_Vect(ball_pos.location)).flatten().len() < 1500 and dot_2D((Make_Vect(ball_pos.location) - Make_Vect(my_car.physics.location)), my_goal.direction) < 0.0) or (Make_Vect(ball_pos.location) - Make_Vect(my_goal.location)).len() < 4000.0) and (Make_Vect(my_car.physics.location) - Make_Vect(ball_pos.location)).len() > 200: # and closest_car_dist > 1000):
 		state = "Defending"
 		# Hit_Ball_To(self, packet, Make_Vect(opponent_goal.location), Make_Vect(my_goal.location))
-		if (Make_Vect(packet.game_ball.physics.location) - Make_Vect(my_car.physics.location)).len() < 500.0 or (dot(Make_Vect(packet.game_ball.physics.location) - Make_Vect(my_car.physics.location), Make_Vect(packet.game_ball.physics.location) - Make_Vect(my_goal.location) + Make_Vect(my_goal.direction) * 300) > 0.0 or abs(packet.game_ball.physics.location.x) > constrain(abs(my_car.physics.location.x), 2000, 1000)):
+		if (Make_Vect(packet.game_ball.physics.location) - Make_Vect(my_car.physics.location)).len() < 500.0 or (dot(Make_Vect(packet.game_ball.physics.location) - Make_Vect(my_car.physics.location), Make_Vect(packet.game_ball.physics.location) - Make_Vect(my_goal.location) + Make_Vect(my_goal.direction) * 300) > 0.0):
 			Hit_Ball_To(self, packet, Make_Vect(opponent_goal.location), Make_Vect(my_goal.location))
 		else:
 			self.is_arieal = False
@@ -1016,7 +1016,7 @@ def Strategy_Ones(self, packet: GameTickPacket):
 			Dribble(self, packet, Make_Vect(opponent_goal.location))
 			self.is_arieal = False
 			self.jump_timer = 0.0
-		# If opponet isn't defending
+		# If opponent isn't defending
 		elif dot((closest_car_pos - Make_Vect(my_car.physics.location)).normal(), opponent_goal.direction) > -0.5:
 			prediction = self.get_ball_prediction_struct()
 			ball_pos = Make_Vect(Get_Ball_At_T(prediction, Approximate_Time_To_Ball(prediction, self.index, packet, 10, self.arieal_acceleration, True)).location)
