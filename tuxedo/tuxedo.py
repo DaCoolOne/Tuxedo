@@ -1018,7 +1018,7 @@ def Strategy_Ones(self, packet: GameTickPacket):
 			self.is_arieal = False
 			self.jump_timer = 0.0
 		# If opponent isn't defending and we have a good shot
-		elif dot((closest_car_pos - Make_Vect(my_car.physics.location)).normal(), opponent_goal.direction) > -0.5 and dot(car_direction.normal(), opponent_goal.direction) < -0.5:
+		elif dot((closest_car_pos - Make_Vect(my_car.physics.location)).normal(), opponent_goal.direction) > -0.5 and dot_2D(car_direction.normal(), opponent_goal.direction) < -0.5:
 			prediction = self.get_ball_prediction_struct()
 			ball_pos = Make_Vect(Get_Ball_At_T(prediction, Approximate_Time_To_Ball(prediction, self.index, packet, 10, self.arieal_acceleration, True)).location)
 			if ball_pos.z < 200:
