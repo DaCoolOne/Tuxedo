@@ -554,7 +554,7 @@ def Get_Ball_On_Car(self, packet: GameTickPacket, direction: Vec3):
 		else:
 			v = Make_Vect(ball_predict.velocity)
 			n = perp(v).normal() * 130
-			if dot_2D(direction, n) < 0.0:
+			if dot_2D(direction, n) > 0.0:
 				n = n * -1
 			b_p = Vector2(ball_predict.location.x, ball_predict.location.y)
 			Drive_To(self, packet, b_p + n, True)
@@ -855,7 +855,7 @@ def Hit_Ball_To(self, packet: GameTickPacket, aim_pos: Vec3, fallback: Vec3):
 				else:
 					self.line_up_time = 0
 				
-				if self.line_up_time > 0.2 and abs(take_off_angle - target_take_off_angle) < 0.2 and time_to_reach_ball * 40 < car.boost and car_to_ball.z < 1500:
+				if self.line_up_time > 0.2 and abs(take_off_angle - target_take_off_angle) < 0.5 and time_to_reach_ball * 40 < car.boost and car_to_ball.z < 1500:
 					self.controller_state.jump = True
 					self.controller_state.pitch = 1
 					self.is_arieal = True
