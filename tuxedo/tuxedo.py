@@ -628,9 +628,9 @@ def Attack_Ball(self, packet: GameTickPacket, aim_pos: Vec3, ball_predict: Vec3)
 	
 	if car_to_pos.flatten().len() < 200 and car_to_pos.z < 200:
 		car_direction = get_car_facing_vector(car)
-		c_p = Make_Vect(packet.game_ball.physics.location) + Make_Vect(packet.game_ball.physics.velocity) * 0.15 - Make_Vect(car.physics.location) - Make_Vect(car.physics.velocity) * 0.3
+		c_p = Make_Vect(packet.game_ball.physics.location) + Make_Vect(packet.game_ball.physics.velocity) * 0.15 - Make_Vect(car.physics.location) - Make_Vect(car.physics.velocity) * 0.15
 		ang = car_direction.correction_to(c_p)
-		Enter_Flip(self, packet, Vector2(-math.sin(ang) * 2, math.cos(ang)).normal())
+		Enter_Flip(self, packet, Vector2(-math.sin(ang), math.cos(ang)))
 	else:
 		Drive_To(self, packet, ball_predict - aim, True)
 
@@ -647,7 +647,7 @@ def Attack_Aim_Ball(self, packet: GameTickPacket, aim_pos: Vec3, ball_predict: V
 		car_direction = get_car_facing_vector(car)
 		c_p = Make_Vect(packet.game_ball.physics.location) + Make_Vect(packet.game_ball.physics.velocity) * 0.15 - Make_Vect(car.physics.location) - Make_Vect(car.physics.velocity) * 0.15
 		ang = car_direction.correction_to(c_p)
-		Enter_Flip(self, packet, Vector2(-math.sin(ang) * 2.0, math.cos(ang)).normal())
+		Enter_Flip(self, packet, Vector2(-math.sin(ang), math.cos(ang)))
 	elif car_to_ball_real.len() < 500:
 		Drive_To(self, packet, Make_Vect(packet.game_ball.physics.location) - aim, True)
 	else:
@@ -915,7 +915,7 @@ def Strategy_Ones(self, packet: GameTickPacket):
 	# Kickoff
 	if packet.game_info.is_kickoff_pause:
 		state = "Kickoff"
-		if (Make_Vect(ball_pos.location) - Make_Vect(my_car.physics.location)).len() > 700:
+		if (Make_Vect(ball_pos.location) - Make_Vect(my_car.physics.location)).len() > 800:
 			Collect_Boost(self, packet, Make_Vect(packet.game_ball.physics.location) - Make_Vect(my_goal.direction) * 200, True, False)
 			self.controller_state.boost = True
 		elif closest_car_dist > 3500:
@@ -984,7 +984,7 @@ def Strategy_Ones(self, packet: GameTickPacket):
 		if my_car.physics.location.z > 200.0 and my_car.has_wheel_contact:
 			self.controller_state.jump = True
 	# Shadow
-	elif (Make_Vect(my_car.physics.location) - Make_Vect(ball_pos.location)).flatten().len() > 600 and (closest_car_pos - Make_Vect(ball_pos.location)).flatten().len() < 500 and (closest_car_pos - Make_Vect(ball_pos.location)).z > -300:
+	elif sign(my_car.physics.location.y) == sign(my_goal.location.y) and (Make_Vect(my_car.physics.location) - Make_Vect(ball_pos.location)).flatten().len() > 600 and (closest_car_pos - Make_Vect(ball_pos.location)).flatten().len() < 500 and (closest_car_pos - Make_Vect(ball_pos.location)).z > -300:
 		state = "Shadow"
 		if (Make_Vect(my_car.physics.location) - Make_Vect(ball_pos.location)).flatten().len() < 300:
 			Attack_Ball(self, packet, Make_Vect(opponent_goal.location), ball_pos)
