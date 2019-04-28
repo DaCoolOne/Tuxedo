@@ -626,7 +626,7 @@ def Attack_Ball(self, packet: GameTickPacket, aim_pos: Vec3, ball_predict: Vec3)
 	aim = (ball_predict - aim_pos).normal() * -50
 	car_to_pos = ball_predict - Make_Vect(car.physics.location) - Make_Vect(car.physics.velocity) * 0.3
 	
-	if car_to_pos.flatten().len() < 200 and car_to_ball_real.z < 200:
+	if car_to_pos.flatten().len() < 200 and car_to_pos.z < 200:
 		car_direction = get_car_facing_vector(car)
 		c_p = Make_Vect(packet.game_ball.physics.location) + Make_Vect(packet.game_ball.physics.velocity) * 0.15 - Make_Vect(car.physics.location) - Make_Vect(car.physics.velocity) * 0.3
 		ang = car_direction.correction_to(c_p)
