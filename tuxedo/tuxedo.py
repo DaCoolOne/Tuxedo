@@ -639,8 +639,9 @@ def Attack_Aim_Ball(self, packet: GameTickPacket, aim_pos: Vec3, ball_predict: V
 	
 	car_direction = get_car_facing_vector(car)
 	
-	a = (ball_predict - aim_pos).flatten().normal() * -145
-	aim = (Vector2(a.x, a.y)).toVector3() # + car_direction * 150).toVector3()
+	a = (ball_predict - aim_pos).flatten().normal() * -125
+	aim = (Vector2(a.x, a.y) + car_direction * 150).toVector3()
+	aim_2 = (Vector2(a.x, a.y)).toVector3()
 	car_to_pos = ball_predict - Make_Vect(car.physics.location)
 	car_to_aim = aim_pos - Make_Vect(car.physics.location)
 	
@@ -650,10 +651,12 @@ def Attack_Aim_Ball(self, packet: GameTickPacket, aim_pos: Vec3, ball_predict: V
 		c_p = Make_Vect(packet.game_ball.physics.location) + Make_Vect(packet.game_ball.physics.velocity) * 0.15 - Make_Vect(car.physics.location) - Make_Vect(car.physics.velocity) * 0.15
 		ang = car_direction.correction_to(c_p)
 		Enter_Flip(self, packet, Vector2(-math.sin(ang) * 2, math.cos(ang)).normal())
-	elif car_to_ball_real.len() < 700:
+	elif car_to_ball_real.len() < 800:
 		Drive_To(self, packet, Make_Vect(packet.game_ball.physics.location) - aim, True)
+	elif car_to_ball_real.len() < 1000:
+		Drive_To(self, packet, ball_predict - aim_2, True)
 	else:
-		Drive_To(self, packet, ball_predict - aim * 1.5, True)
+		Drive_To(self, packet, ball_predict - aim_2 * 3, True)
 	
 	self.renderer.draw_line_3d(packet.game_ball.physics.location, (ball_predict - aim).UI_Vec3(), self.renderer.yellow())
 	
