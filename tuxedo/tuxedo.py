@@ -987,7 +987,7 @@ def Strategy_Ones(self, packet: GameTickPacket):
 	elif sign(my_car.physics.location.y) == sign(my_goal.location.y) and (Make_Vect(my_car.physics.location) - Make_Vect(ball_pos.location)).flatten().len() > 600 and (closest_car_pos - Make_Vect(ball_pos.location)).flatten().len() < 500 and (closest_car_pos - Make_Vect(ball_pos.location)).z > -300:
 		state = "Shadow"
 		if (Make_Vect(my_car.physics.location) - Make_Vect(ball_pos.location)).flatten().len() < 300:
-			Attack_Ball(self, packet, Make_Vect(opponent_goal.location), ball_pos)
+			Attack_Ball(self, packet, Make_Vect(opponent_goal.location), Make_Vect(ball_pos.location))
 		else:
 			v = Make_Vect(my_goal.location) + (Make_Vect(ball_pos.location) - Make_Vect(my_goal.location)).flatten() * 0.8
 			Collect_Boost(self, packet, v, True, False)
