@@ -983,7 +983,7 @@ def Strategy_Ones(self, packet: GameTickPacket):
 		if my_car.physics.location.z > 200.0 and my_car.has_wheel_contact:
 			self.controller_state.jump = True
 	# Shadow
-	elif sign(my_car.physics.location.y) == sign(my_goal.location.y) and (Make_Vect(my_car.physics.location) - Make_Vect(ball_pos.location)).flatten().len() > 600 and (closest_car_pos - Make_Vect(ball_pos.location)).flatten().len() < 500 and (closest_car_pos - Make_Vect(ball_pos.location)).z > -300:
+	elif sign(my_car.physics.location.y) == sign(my_goal.location.y) and (Make_Vect(my_car.physics.location) - Make_Vect(ball_pos.location)).flatten().len() > 600 and (closest_car_pos - Make_Vect(ball_pos.location)).flatten().len() < 500 and (closest_car_pos - Make_Vect(ball_pos.location)).z > -300 and Make_Vect(my_car.physics.velocity).len() < 700:
 		state = "Shadow"
 		if (Make_Vect(my_car.physics.location) - Make_Vect(ball_pos.location)).flatten().len() < 300:
 			Attack_Ball(self, packet, Make_Vect(opponent_goal.location), Make_Vect(ball_pos.location))
