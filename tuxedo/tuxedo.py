@@ -907,6 +907,7 @@ def Strategy_Ones(self, packet: GameTickPacket):
 			closest_car_pos = Make_Vect(car.physics.location)
 	
 	state = ""
+	sub_state = ""
 	
 	car_direction = get_car_facing_vector(my_car)
 	
@@ -916,17 +917,21 @@ def Strategy_Ones(self, packet: GameTickPacket):
 		if (Make_Vect(ball_pos.location) - Make_Vect(my_car.physics.location)).len() > 800:
 			Collect_Boost(self, packet, Make_Vect(packet.game_ball.physics.location) - Make_Vect(my_goal.direction) * 200, True, False)
 			self.controller_state.boost = True
+			sub_state = "Charging Ball"
 		elif closest_car_dist > 3500:
 			self.controller_state.throttle = -1
 			self.controller_state.steer = 0.0
 			self.controller_state.boost = False
 			self.controller_state.handbrake = False
 			self.controller_state.jump = False
+			sub_state = "Countering Fake"
 		else:
 			ang = car_direction.correction_to((Make_Vect(packet.game_ball.physics.location) - Make_Vect(my_car.physics.location) - Make_Vect(my_car.physics.velocity) * 0.25).normal()) # constrain(car_direction.correction_to((Make_Vect(my_car.physics.location) - direction).normal()), -math.pi * 0.4, math.pi * 0.4)
 			
 			Enter_Flip(self, packet, Vector2(math.sin(-ang), math.cos(-ang)))
 			self.controller_state.boost = False
+			sub_state = "Flip"
+			
 	# Inside goal (Prevents car from entering net too far)
 	elif abs(my_car.physics.location.x) < 900 and (dot(Make_Vect(my_car.physics.location) + Make_Vect(my_car.physics.velocity) * 0.25 - Make_Vect(my_goal.location), my_goal.direction) < 0.0 and ((Make_Vect(ball_pos.location) - Make_Vect(my_goal.location)).len() > 1000.0 or Make_Vect(my_car.physics.velocity).flatten().len() > 1000)):
 		state = "Inside Goal"
@@ -943,6 +948,8 @@ def Strategy_Ones(self, packet: GameTickPacket):
 			
 			self.is_arieal = False
 			self.jump_timer = 0.0
+			
+			sub_state = "Half Flip"
 		#Driving towards ball
 		else:
 			
@@ -969,53 +976,66 @@ def Strategy_Ones(self, packet: GameTickPacket):
 				self.is_arieal = False
 				self.jump_timer = 0.0
 				self.controller_state.boost = False
+				sub_state = "Drive Around Post"
 			elif (a2 - b_a) * (a1 - a2) > 0.0 and (p2 - car_pos).len() > 200:
 				Drive_To(self, packet, p2)
 				self.is_arieal = False
 				self.jump_timer = 0.0
 				self.controller_state.boost = False
+				sub_state = "Drive Around Post"
 			else:
 				Hit_Ball_To(self, packet, Make_Vect(opponent_goal.location), Make_Vect(my_goal.location))
+				sub_state = "Hit Ball"
 			
-		self.renderer.draw_line_3d(my_car.physics.location, p1.UI_Vec3(), self.renderer.red())
-		self.renderer.draw_line_3d(my_car.physics.location, p2.UI_Vec3(), self.renderer.red())
+			self.renderer.draw_line_3d(my_car.physics.location, p1.UI_Vec3(), self.renderer.red())
+			self.renderer.draw_line_3d(my_car.physics.location, p2.UI_Vec3(), self.renderer.red())
 		
 		if my_car.physics.location.z > 200.0 and my_car.has_wheel_contact:
 			self.controller_state.jump = True
+			sub_state = "Jump Off Wall"
 	# Shadow
 	elif sign(my_car.physics.location.y) == sign(my_goal.location.y) and (Make_Vect(my_car.physics.location) - Make_Vect(ball_pos.location)).flatten().len() > 600 and (closest_car_pos - Make_Vect(ball_pos.location)).flatten().len() < 500 and (closest_car_pos - Make_Vect(ball_pos.location)).z > -300 and Make_Vect(my_car.physics.velocity).len() < 700:
 		state = "Shadow"
 		if (Make_Vect(my_car.physics.location) - Make_Vect(ball_pos.location)).flatten().len() < 300:
 			Attack_Ball(self, packet, Make_Vect(opponent_goal.location), Make_Vect(ball_pos.location))
+			sub_state = "Attack"
 		else:
 			v = Make_Vect(my_goal.location) + (Make_Vect(ball_pos.location) - Make_Vect(my_goal.location)).flatten() * 0.8
 			Collect_Boost(self, packet, v, True, False)
+			sub_state = "Tactical Retreat"
 		self.is_arieal = False
 		self.jump_timer = 0.0
 	# Defense
 	elif (((closest_car_pos - Make_Vect(ball_pos.location)).flatten().len() < 1500 and dot_2D((Make_Vect(ball_pos.location) - Make_Vect(my_car.physics.location)), my_goal.direction) < 0.0) or (Make_Vect(ball_pos.location) - Make_Vect(my_goal.location)).len() < 4000.0) and (Make_Vect(my_car.physics.location) - Make_Vect(ball_pos.location)).len() > 200: # and closest_car_dist > 1000):
 		state = "Defending"
 		# Hit_Ball_To(self, packet, Make_Vect(opponent_goal.location), Make_Vect(my_goal.location))
-		if (Make_Vect(packet.game_ball.physics.location) - Make_Vect(my_car.physics.location)).len() < 500.0 or (dot(Make_Vect(packet.game_ball.physics.location) - Make_Vect(my_car.physics.location), Make_Vect(packet.game_ball.physics.location) - Make_Vect(my_goal.location) + Make_Vect(my_goal.direction) * 300) > 0.0):
-			Hit_Ball_To(self, packet, Make_Vect(opponent_goal.location), Make_Vect(my_goal.location))
+		if (Make_Vect(packet.game_ball.physics.location) - Make_Vect(my_car.physics.location)).len() < 500.0 or (dot(Make_Vect(packet.game_ball.physics.location) - Make_Vect(my_car.physics.location), Make_Vect(packet.game_ball.physics.location) - Make_Vect(my_goal.location) + Make_Vect(my_goal.direction) * 100) > 0.0):
+			Hit_Ball_To(self, packet, Make_Vect(opponent_goal.location), Make_Vect(my_goal.location) - Make_Vect(my_goal.direction) * 300)
+			sub_state = "Attack Ball"
 		else:
 			self.is_arieal = False
 			self.jump_timer = 0.0
 			if (Make_Vect(my_car.physics.location) - Make_Vect(ball_pos.location)).len() > 1000:
-				Collect_Boost(self, packet, Make_Vect(my_goal.location) + Make_Vect(my_goal.direction) * 100, True) #Vec3(-sign(car_to_pos.x) * 150, 0, 0))
+				Collect_Boost(self, packet, Make_Vect(my_goal.location) - Make_Vect(my_goal.direction) * 300, True) #Vec3(-sign(car_to_pos.x) * 150, 0, 0))
+				sub_state = "Collect Boost to Goal"
 			else:
-				Drive_To(self, packet, Make_Vect(my_goal.location) + Make_Vect(my_goal.direction) * 100, False)
+				Drive_To(self, packet, Make_Vect(my_goal.location) - Make_Vect(my_goal.direction) * 300, False)
+				sub_state = "Head to Goal"
 	# Offense
 	else:
 		state = "Offense"
-		if packet.game_ball.physics.location.z > 1500 or (Make_Vect(ball_pos.location) - Make_Vect(my_car.physics.location)).len() > 2000:
-			Collect_Boost(self, packet, Make_Vect(ball_pos.location), (Make_Vect(ball_pos.location) - Make_Vect(my_car.physics.location)).len() > 1500)
+		if dot(Make_Vect(packet.game_ball.physics.location) - Make_Vect(my_car.physics.location), Make_Vect(packet.game_ball.physics.location) - Make_Vect(my_goal.location) + Make_Vect(my_goal.direction) * 100) < 0.0:
+			Collect_Boost(self, packet, Make_Vect(my_goal.location), True, True)
+		elif packet.game_ball.physics.location.z > 1500 or (Make_Vect(ball_pos.location) - Make_Vect(my_car.physics.location)).len() > 2000:
+			Collect_Boost(self, packet, Make_Vect(ball_pos.location), (Make_Vect(ball_pos.location) - Make_Vect(my_car.physics.location)).flatten().len() > 1500)
 			self.is_arieal = False
 			self.jump_timer = 0.0
+			sub_state = "Collect Boost to Ball"
 		elif Vector2(v.x, v.y).len() < 100.0 and packet.game_ball.physics.location.z > 120:
 			Dribble(self, packet, Make_Vect(opponent_goal.location))
 			self.is_arieal = False
 			self.jump_timer = 0.0
+			sub_state = "Dribble"
 		# If opponent isn't defending and we have a good shot
 		elif dot((closest_car_pos - Make_Vect(my_car.physics.location)).normal(), opponent_goal.direction) > -0.5 and dot_2D(car_direction.normal(), opponent_goal.direction) < -0.5:
 			prediction = self.get_ball_prediction_struct()
@@ -1024,20 +1044,24 @@ def Strategy_Ones(self, packet: GameTickPacket):
 				Attack_Aim_Ball(self, packet, Make_Vect(opponent_goal.location), ball_pos)
 				self.is_arieal = False
 				self.jump_timer = 0.0
+				sub_state = "Ground Shot"
 			else:
 				Hit_Ball_To(self, packet, Make_Vect(opponent_goal.location), Make_Vect(my_goal.location))
+				sub_state = "Air Shot"
 				# Dribble(self, packet, Make_Vect(opponent_goal.location))
 		elif closest_car_dist < 2000 or  packet.game_ball.physics.location.z > 500:
 			Dribble(self, packet, Make_Vect(opponent_goal.location))
 			self.is_arieal = False
 			self.jump_timer = 0.0
+			sub_state = "Control"
 		else:
 			# Hit_Ball_To(self, packet, Make_Vect(opponent_goal.location), Make_Vect(my_goal.location))
 			Get_Ball_On_Car(self, packet, Make_Vect(my_goal.direction))
 			self.is_arieal = False
 			self.jump_timer = 0.0
+			sub_state = "Get Ball on Car"
 	
-	self.renderer.draw_string_3d(my_car.physics.location, 2, 2, state, self.renderer.white())
+	self.renderer.draw_string_3d(my_car.physics.location, 2, 2, state+"\n "+sub_state, self.renderer.white())
 	
 	if my_car.is_super_sonic:
 		self.controller_state.boost = False
