@@ -454,7 +454,7 @@ def Dribble(self, packet: GameTickPacket, position: Vec3):
 	if my_car.has_wheel_contact:
 		
 		if car_to_pos.len() > 1500:
-			Collect_Boost(self, packet, Make_Vect(ball_predict.location))
+			Collect_Boost(self, packet, Make_Vect(ball_predict.location), True, True)
 		else:
 			steer_correction_radians = car_direction.correction_to(car_to_pos)
 			
