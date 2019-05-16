@@ -764,15 +764,15 @@ def Attack_Aim_Ball(self, packet: GameTickPacket, aim_pos: Vec3, ball_predict: V
 	car_direction = get_car_facing_vector(car)
 	
 	a = (ball_predict - aim_pos).flatten().normal(-125)
-	aim = (Vec3(a.x, a.y, 0) + car_direction * 150)
+	aim = (Vec3(a.x, a.y, 0) - car_direction * 100)
 	aim_2 = Vec3(a.x, a.y, 0)
 	
 	aim = aim.align_from(car_rot)
-	aim.y = aim.y * 0.3
+	aim.y = aim.y * 0.5
 	aim = aim.align_to(car_rot)
 	
 	aim_2 = aim_2.align_from(car_rot)
-	aim_2.y = aim_2.y * 0.3
+	aim_2.y = aim_2.y * 0.5
 	aim_2 = aim_2.align_to(car_rot)
 	
 	car_to_pos = ball_predict - Make_Vect(car.physics.location) - Make_Vect(car.physics.velocity) * 0.1
@@ -783,16 +783,16 @@ def Attack_Aim_Ball(self, packet: GameTickPacket, aim_pos: Vec3, ball_predict: V
 	
 	# if ball_predict.z > 250:
 		# Aerial_Hit_Ball(self, packet, aim_pos)
-	if car_to_ball_real.len() < 350 and abs(car_to_ball_real.z) < 180:
+	if car_to_ball_real.len() < 300 and abs(car_to_ball_real.z) < 180:
 		c_p = Make_Vect(packet.game_ball.physics.location) + Make_Vect(packet.game_ball.physics.velocity) * 0.15 - Make_Vect(car.physics.location) - Make_Vect(car.physics.velocity) * 0.15
 		ang = correction(car, c_p)
 		Enter_Flip(self, packet, Vec3(-math.sin(ang) * 2, math.cos(ang), 0.0).normal())
 	elif abs(car_to_ball_real.z) > 250:
-		Collect_Boost(self, packet, (ball_predict - aim_2 * 2), True, True, True)
+		Collect_Boost(self, packet, (ball_predict - aim * 2), True, True, True)
 	else:
-		Collect_Boost(self, packet, (ball_predict - aim_2 * (car_to_ball_real.len() * 0.005 + 0.1)), True, True, True)
+		Collect_Boost(self, packet, (ball_predict - aim * (car_to_ball_real.len() * 0.005 + 0.1)), True, True, True)
 	
-	self.renderer.draw_line_3d(ball_predict.UI_Vec3(), (ball_predict - aim_2 * (car_to_pos.len() * 0.005 + 0.1)).UI_Vec3(), self.renderer.red())
+	self.renderer.draw_line_3d(ball_predict.UI_Vec3(), (ball_predict - aim * (car_to_pos.len() * 0.005 + 0.1)).UI_Vec3(), self.renderer.red())
 	
 	self.renderer.draw_line_3d(packet.game_ball.physics.location, aim_pos.UI_Vec3(), self.renderer.white())
 	
