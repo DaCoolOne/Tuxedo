@@ -310,7 +310,7 @@ def Drive_To(self, packet: GameTickPacket, position, boost = False, no_overshoot
 		car_to_pos_vel_2 = car_to_pos - Make_Vect(my_car.physics.velocity) * 0.4
 		
 		if no_overshoot:
-			car_to_pos_vel_2 = car_to_pos - Make_Vect(my_car.physics.velocity) * 2
+			car_to_pos_vel_2 = car_to_pos + Make_Vect(my_car.physics.velocity) * 0.5
 		
 		steer_correction_radians = correction(my_car, car_to_pos)
 		
@@ -326,7 +326,7 @@ def Drive_To(self, packet: GameTickPacket, position, boost = False, no_overshoot
 		else:
 			self.controller_state.boost = False
 			self.controller_state.handbrake = (abs(steer_correction_radians) < math.pi * 0.7) and (abs(steer_correction_radians) > math.pi * 0.3) and my_car.physics.location.z < 100.0
-			self.controller_state.throttle = constrain(car_to_pos_vel_2.len() / 100, 0, 1)
+			self.controller_state.throttle = constrain(car_to_pos_vel_2.len() / 200, 0.02, 1)
 			if dot_2D(car_to_pos_vel.flatten().normal(), get_car_facing_vector(my_car).flatten().normal()) < -0.7 and my_car.physics.location.z < 50.0:
 				self.controller_state.throttle = -self.controller_state.throttle
 				# May need to update
