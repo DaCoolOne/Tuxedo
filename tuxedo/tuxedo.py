@@ -733,7 +733,7 @@ def Attack_Ball(self, packet: GameTickPacket, aim_pos: Vec3, ball_predict: Vec3)
 	car_rot = car.physics.rotation
 	
 	aim = aim.align_from(car_rot)
-	aim.y = aim.y * 0.5
+	aim.y = aim.y * 0.3
 	aim = aim.align_to(car_rot)
 	
 	car_to_ball_real = Make_Vect(packet.game_ball.physics.location) - Make_Vect(car.physics.location)
@@ -768,12 +768,12 @@ def Attack_Aim_Ball(self, packet: GameTickPacket, aim_pos: Vec3, ball_predict: V
 	aim_2 = Vec3(a.x, a.y, 0)
 	
 	aim = aim.align_from(car_rot)
-	aim.y = aim.y * 0.5
+	aim.y = aim.y * 0.3
 	aim = aim.align_to(car_rot)
 	
-	aim_2 = aim.align_from(car_rot)
-	aim_2.y = aim.y * 0.5
-	aim_2 = aim.align_to(car_rot)
+	aim_2 = aim_2.align_from(car_rot)
+	aim_2.y = aim_2.y * 0.3
+	aim_2 = aim_2.align_to(car_rot)
 	
 	car_to_pos = ball_predict - Make_Vect(car.physics.location) - Make_Vect(car.physics.velocity) * 0.1
 	
