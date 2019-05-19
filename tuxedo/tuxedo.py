@@ -309,10 +309,10 @@ def Drive_To(self, packet: GameTickPacket, position, boost = False, no_overshoot
 		car_to_pos = position - car_location
 		
 		car_to_pos_vel = car_to_pos - Make_Vect(my_car.physics.velocity) * 0.1
-		car_to_pos_vel_2 = car_to_pos - Make_Vect(my_car.physics.velocity) * 0.4
+		car_to_pos_vel_2 = car_to_pos - Make_Vect(my_car.physics.velocity)
 		
 		if no_overshoot:
-			car_to_pos_vel_2 = car_to_pos + Make_Vect(my_car.physics.velocity) * 0.5
+			car_to_pos_vel_2 = car_to_pos + Make_Vect(my_car.physics.velocity) * 0.8
 		
 		steer_correction_radians = correction(my_car, car_to_pos)
 		
@@ -1241,7 +1241,7 @@ def Strategy_Ones(self, packet: GameTickPacket):
 			Attack_Aim_Ball(self, packet, Make_Vect(opponent_goal.location) - Make_Vect(opponent_goal.direction) * 150, Make_Vect(Get_Ball_At_T(packet, self.get_ball_prediction_struct(), Approximate_Time_To_Ball(self.get_ball_prediction_struct(), self.index, packet, 20, self.arieal_acceleration, False)).location))
 			# Hit_Ball_To(self, packet, Make_Vect(opponent_goal.location) - Make_Vect(opponent_goal.direction) * 100, Make_Vect(my_goal.location) - Make_Vect(my_goal.direction) * 300)
 		else:
-			Collect_Boost(self, packet, Make_Vect(ball_pos.location) + Make_Vect(opponent_goal.direction) * 500, True, False)
+			Collect_Boost(self, packet, Make_Vect(ball_pos.location) + (Make_Vect(ball_pos.location) - Make_Vect(opponent_goal.location)).normal() * 500, True, False)
 			sub_state = "Lining up"
 	elif (sign(ball_pos.velocity.y) != sign(my_goal.direction.y) and abs(ball_pos.velocity.y) > 500) or (closest_car_dist < 2000 and (Make_Vect(ball_pos.location) - Make_Vect(my_goal.location)).len() < 4000) or ((Make_Vect(ball_pos.location) - Make_Vect(my_goal.location)).len() < 1000 and sign(ball_pos.location.y - my_goal.location.y - my_goal.direction.y * 100) == sign(my_goal.direction.y)):
 		state = "Defending"
