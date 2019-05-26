@@ -378,7 +378,7 @@ def Hook_Ball(self, packet, away_target):
 	car_to_ball = ball_pos - Make_Vect(my_car.physics.location)
 	ball_to_away = away_target - ball_pos
 	
-	offset = perp(car_to_ball).normal(170)
+	offset = perp(car_to_ball).normal(180)
 	
 	if sign(offset.x) != sign(ball_to_away.x):
 		offset = offset * 1
